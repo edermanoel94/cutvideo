@@ -1,0 +1,179 @@
+[
+  {
+    "title": "Aquecimento",
+    "inputVideoPath": "/Users/edercosta/Downloads/IMG_6078.MOV",
+    "clips": [
+      {
+        "name": "contra ataque no aquecimento",
+        "startTime": "00:10:45",
+        "endTime": "00:11:02"
+      },
+      {
+        "name": "contra ataque com toque feio",
+        "startTime": "00:11:40",
+        "endTime": "00:11:55"
+      },
+      {
+        "name": "contra ataque julinho",
+        "startTime": "00:13:30",
+        "endTime": "00:13:36"
+      },
+      {
+        "name": "bloqueio do joao",
+        "startTime": "00:14:55",
+        "endTime": "00:15:09"
+      },
+      {
+        "name": "passe bom do eder",
+        "startTime": "00:15:27",
+        "endTime": "00:15:33"
+      },
+      {
+        "name": "bola de segunda do eder",
+        "startTime": "00:15:46",
+        "endTime": "00:15:52"
+      },
+      {
+        "name": "defesa boa do julinho",
+        "startTime": "00:18:48",
+        "endTime": "00:18:55"
+      },
+      {
+        "name": "ataque de segunda do julinho",
+        "startTime": "00:27:49",
+        "endTime": "00:27:56"
+      }
+    ]
+  },
+  {
+    "title": "Jogo",
+    "inputVideoPath": "/Users/edercosta/Downloads/IMG_6079.MOV",
+    "clips": [
+      {
+        "name": "contra ataque bom",
+        "startTime": "00:00:41",
+        "endTime": "00:00:51"
+      },
+      {
+        "name": "ataque de check do julinho",
+        "startTime": "00:02:13",
+        "endTime": "00:02:18"
+      },
+      {
+        "name": "levantada de costa para o julinho atacar",
+        "startTime": "00:05:26",
+        "endTime": "00:05:38"
+      },
+      {
+        "name": "ataque de check do julinho",
+        "startTime": "00:02:13",
+        "endTime": "00:02:18"
+      },
+      {
+        "name": "ataque na diagonal curta",
+        "startTime": "00:19:32",
+        "endTime": "00:19:42"
+      },
+      {
+        "name": "bloqueio do julinho contra o lau",
+        "startTime": "00:08:40",
+        "endTime": "00:08:46"
+      },
+      {
+        "name": "lau ganhando no check",
+        "startTime": "00:09:30",
+        "endTime": "00:09:42"
+      },
+      {
+        "name": "ataque por tras do julinho",
+        "startTime": "00:09:55",
+        "endTime": "00:10:04"
+      },
+      {
+        "name": "defesa e cut do julinho",
+        "startTime": "00:10:40",
+        "endTime": "00:10:50"
+      },
+      {
+        "name": "bloqueio do eder",
+        "startTime": "00:11:04",
+        "endTime": "00:11:18"
+      },
+      {
+        "name": "cut bonitao do eder",
+        "startTime": "00:11:56",
+        "endTime": "00:12:05"
+      },
+      {
+        "name": "de segunda do julinho bloqueado",
+        "startTime": "00:15:10",
+        "endTime": "00:15:20"
+      },
+      {
+        "name": "levantada linda na defesa do julinho",
+        "startTime": "00:17:00",
+        "endTime": "00:17:13"
+      },
+      {
+        "name": "ace",
+        "startTime": "00:18:57",
+        "endTime": "00:19:03"
+      },
+      {
+        "name": "boa batida na bola",
+        "startTime": "00:20:34",
+        "endTime": "00:20:42"
+      },
+      {
+        "name": "bom ataque do lau",
+        "startTime": "00:22:01",
+        "endTime": "00:22:08"
+      },
+      {
+        "name": "boa tirada do bloqueio",
+        "startTime": "00:22:23",
+        "endTime": "00:22:33"
+      },
+      {
+        "name": "jump set do julinho",
+        "startTime": "00:23:56",
+        "endTime": "00:24:08"
+      },
+      {
+        "name": "boa segurada no levantamento",
+        "startTime": "00:25:37",
+        "endTime": "00:25:45"
+      },
+      {
+        "name": "plim",
+        "startTime": "00:26:14",
+        "endTime": "00:26:19"
+      },
+      {
+        "name": "boa do laulau",
+        "startTime": "00:26:33",
+        "endTime": "00:26:40"
+      },
+      {
+        "name": "boaaaaaa",
+        "startTime": "00:27:33",
+        "endTime": "00:27:45"
+      },
+      {
+        "name": "cut sem saltar",
+        "startTime": "00:29:56",
+        "endTime": "00:30:05"
+      },
+      {
+        "name": "melhor jogada",
+        "startTime": "00:31:13",
+        "endTime": "00:31:35"
+      },
+      {
+        "name": "melhor nivel de voleibal",
+        "startTime": "00:32:06",
+        "endTime": "00:32:20"
+      }
+    ]
+  }
+]
