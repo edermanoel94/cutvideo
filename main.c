@@ -1,63 +1,76 @@
-#include "json_object.h"
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <json-c/json.h>
+#include <json-c/json_object.h>
+#include <stdio.h>
+#include <unistd.h>
 
-struct Video {};
+struct clip_t {
+  const char *name;
+  const char *start_time;
+  const char *end_time;
+};
 
-struct Clip {};
+struct video_t {
+  const char *title;
+  const char *input_video_path;
+  const char *clips;
+};
 
-int main() {
+int run_ffmpeg(const char *input, struct clip_t clip) {
 
-  int val_type, i;
-  json_object *root = json_object_from_file("./data.json");
+  // ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy output.mp4
 
+  char *output = NULL;
+  sprintf(output, "%s.mp4", clip.name);
+
+  printf("OUTPUT: %s\n", output);
+
+  return execl("/usr/bin/ffmpeg", "ffmpeg", "-i", input, "-ss", clip.start_time,
+               "-to", clip.end_time, "-c", "copy", output, NULL);
+}
+
+int main(int argc, const char *argv[]) {
+
+  if (argc != 2) {
+    printf("Usage: %s <input_file>\n", argv[0]);
+    exit(0);
+  }
+
+  int i, array_length;
+
+  // TODO: use argv for input file
+  const char *filename = argv[1];
+  struct json_object *root;
+
+  root = json_object_from_file(filename);
   if (!root) {
     printf("Error to open json file.");
     return 1;
   }
 
-  char *val_type_str;
+  array_length = json_object_array_length(root);
 
-  json_object_object_foreach(root, key, val) {
+  printf("%d\n", array_length);
 
-    printf("Key: %s", key);
+  for (i = 0; i < array_length; i++) {
+    struct json_object *item = json_object_array_get_idx(root, i);
 
-    val_type = json_object_get_type(val);
+    struct json_object *titleObj, *input_video_pathObj, *clipsObj;
 
-    switch (val_type) {
-    case json_type_null:
-      val_type_str = "val is NULL";
-      break;
+    json_object_object_get_ex(item, "title", &titleObj);
+    json_object_object_get_ex(item, "inputVideoPath", &input_video_pathObj);
+    json_object_object_get_ex(item, "clips", &clipsObj);
 
-    case json_type_boolean:
-      val_type_str = "val is a boolean";
-      break;
+    struct video_t video_t = {
+        .title = json_object_get_string(titleObj),
+        .input_video_path = json_object_get_string(input_video_pathObj),
+    };
 
-    case json_type_double:
-      val_type_str = "val is a double";
-      break;
-
-    case json_type_int:
-      val_type_str = "val is an integer";
-      break;
-
-    case json_type_string:
-      val_type_str = "val is a string";
-      break;
-
-    case json_type_object:
-      val_type_str = "val is an object";
-      break;
-
-    case json_type_array:
-      val_type_str = "val is an array";
-      break;
-    }
-
-    printf("%s", val_type_str);
+    printf("\t###### -----%s----- ######\n", video_t.title);
+    printf("\t%s\n", video_t.input_video_path);
   }
+
+  // free json object
+  json_object_put(root);
 
   return 0;
 }

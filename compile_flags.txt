@@ -1,4 +1,1 @@
--I/opt/homebrew/Cellar/json-c/0.18/include 
--I/opt/homebrew/Cellar/json-c/0.18/include/json-c 
--L/opt/homebrew/Cellar/json-c/0.18/lib 
--ljson-c
+-I/usr/include/json-c -ljson-c
