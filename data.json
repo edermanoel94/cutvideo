@@ -1,7 +1,7 @@
 [
   {
     "title": "Aquecimento",
-    "inputVideoPath": "/Users/edercosta/Downloads/IMG_6078.MOV",
+    "inputFile": "/Users/edercosta/Downloads/IMG_6078.MOV",
     "clips": [
       {
         "name": "contra ataque no aquecimento",
@@ -47,7 +47,7 @@
   },
   {
     "title": "Jogo",
-    "inputVideoPath": "/Users/edercosta/Downloads/IMG_6079.MOV",
+    "inputFile": "/Users/edercosta/Downloads/IMG_6079.MOV",
     "clips": [
       {
         "name": "contra ataque bom",
