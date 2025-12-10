@@ -34,8 +34,6 @@ int main(int argc, const char *argv[]) {
     exit(0);
   }
 
-  int i, root_arr_length, clips_arr_length;
-
   const char *filename = argv[1];
   struct json_object *root;
 
@@ -45,7 +43,11 @@ int main(int argc, const char *argv[]) {
     return 1;
   }
 
+  int i, root_arr_length, clips_arr_length;
+
   root_arr_length = json_object_array_length(root);
+
+  struct video_t videos[root_arr_length];
 
   for (i = 0; i < root_arr_length; i++) {
     struct json_object *item = json_object_array_get_idx(root, i);
@@ -64,8 +66,7 @@ int main(int argc, const char *argv[]) {
     json_object_object_get_ex(item, "clips", &clips_obj);
     clips_arr_length = json_object_array_length(clips_obj);
 
-    printf("\t###### -----%s----- ######\n", video_t.title);
-    printf("\t%s\n", video_t.input_file);
+    struct clip_t clips[clips_arr_length];
 
     for (int j = 0; j < clips_arr_length; j++) {
 
@@ -83,11 +84,17 @@ int main(int argc, const char *argv[]) {
           .end_time = json_object_get_string(end_time_obj),
       };
 
-      printf("\t%s\n", clip_t.name);
-      printf("\t%s\n", clip_t.start_time);
-      printf("\t%s\n", clip_t.end_time);
+      clips[j] = clip_t;
     }
+
+    video_t.clips = clips;
+
+    videos[i] = video_t;
   }
+
+  int videos_length = sizeof(videos) / sizeof(videos[0]);
+
+  printf("Tamanho dos videos, %ld\n", videos_length);
 
   // free json object
   json_object_put(root);
