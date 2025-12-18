@@ -12,6 +12,8 @@ struct video_t {
   const char *title;
   const char *input_file;
   struct clip_t *clips;
+
+  int clip_size;
 };
 
 int run_ffmpeg(const char *input, struct clip_t clip) {
@@ -88,13 +90,22 @@ int main(int argc, const char *argv[]) {
     }
 
     video_t.clips = clips;
+    video_t.clip_size = clips_arr_length;
 
     videos[i] = video_t;
   }
 
-  int videos_length = sizeof(videos) / sizeof(videos[0]);
+  // iterate over the struct of video_t and iterate over clips and run ffmpeg
+  int videos_length = sizeof(videos) / sizeof(struct video_t);
 
-  printf("Tamanho dos videos, %ld\n", videos_length);
+  for (int i = 0; i < videos_length; i++) {
+
+      struct video_t video = videos[i];
+
+      for (int j = 0; j < video.clip_size; j++) {
+          printf("%s\n", video.clips[j].name);
+      }
+  }
 
   // free json object
   json_object_put(root);
