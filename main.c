@@ -1,6 +1,9 @@
 #include <json-c/json.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <unistd.h>
+
+#define CLIP_NAME_SIZE 256
 
 struct clip_t {
   const char *name;
@@ -13,20 +16,31 @@ struct video_t {
   const char *input_file;
   struct clip_t *clips;
 
-  int clip_size;
+  int clips_size;
 };
 
 int run_ffmpeg(const char *input, struct clip_t clip) {
 
-  // ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy output.mp4
+  // checking if input path exists
+  struct stat stat_buf = {0};
 
-  char *output = NULL;
+  if (lstat(input, &stat_buf) == -1) {
+    perror("lstat");
+    return -1;
+  }
+
+  char output[CLIP_NAME_SIZE];
   sprintf(output, "%s.mp4", clip.name);
 
-  printf("OUTPUT: %s\n", output);
+  // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
+  // output.mp4
+  if (execl("/usr/bin/ffmpeg", "ffmpeg", "-i", input, "-ss", clip.start_time,
+            "-to", clip.end_time, "-c", "copy", output, NULL) == -1) {
+    perror("execl");
+    return -1;
+  }
 
-  return execl("/usr/bin/ffmpeg", "ffmpeg", "-i", input, "-ss", clip.start_time,
-               "-to", clip.end_time, "-c", "copy", output, NULL);
+  return 0;
 }
 
 int main(int argc, const char *argv[]) {
@@ -68,7 +82,8 @@ int main(int argc, const char *argv[]) {
     json_object_object_get_ex(item, "clips", &clips_obj);
     clips_arr_length = json_object_array_length(clips_obj);
 
-    struct clip_t clips[clips_arr_length];
+    struct clip_t *clips =
+        (struct clip_t *)malloc(clips_arr_length * sizeof(struct clip_t));
 
     for (int j = 0; j < clips_arr_length; j++) {
 
@@ -80,19 +95,22 @@ int main(int argc, const char *argv[]) {
       json_object_object_get_ex(clip_item, "startTime", &start_time_obj);
       json_object_object_get_ex(clip_item, "endTime", &end_time_obj);
 
-      struct clip_t clip_t = {
+      struct clip_t clip = {
           .name = json_object_get_string(name_obj),
           .start_time = json_object_get_string(start_time_obj),
           .end_time = json_object_get_string(end_time_obj),
       };
 
-      clips[j] = clip_t;
+      clips[j] = clip;
     }
 
     video_t.clips = clips;
-    video_t.clip_size = clips_arr_length;
+    video_t.clips_size = clips_arr_length;
 
     videos[i] = video_t;
+
+    // keeping this is worthy ?
+    clips = NULL;
   }
 
   // iterate over the struct of video_t and iterate over clips and run ffmpeg
@@ -100,11 +118,16 @@ int main(int argc, const char *argv[]) {
 
   for (int i = 0; i < videos_length; i++) {
 
-      struct video_t video = videos[i];
+    struct video_t video = videos[i];
 
-      for (int j = 0; j < video.clip_size; j++) {
-          printf("%s\n", video.clips[j].name);
+    for (int j = 0; j < video.clips_size; j++) {
+      if (run_ffmpeg(video.input_file, video.clips[j]) == -1) {
+        break;
       }
+    }
+
+    // this is correct ? using valgrind, not leaking memory
+    free(video.clips);
   }
 
   // free json object
