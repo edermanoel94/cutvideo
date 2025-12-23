@@ -28,23 +28,24 @@ int run_ffmpeg(const char *input, struct clip_t clip) {
 
   if (pid == 0) {
     char output[CLIP_NAME_SIZE];
+    // TODO: choosing a target dir
     sprintf(output, "%s.mp4", clip.name);
 
     char *args[] = {"/usr/bin/ffmpeg",
-      "-hide_banner",
-      "-loglevel",
-      "error",
-      "-y",
-      "-i",
-      input,
-      "-ss",
-      clip.start_time,
-      "-to",
-      clip.end_time,
-      "-c",
-      "copy",
-      output,
-      0};
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-y",
+                    "-i",
+                    input,
+                    "-ss",
+                    clip.start_time,
+                    "-to",
+                    clip.end_time,
+                    "-c",
+                    "copy",
+                    output,
+                    0};
 
     // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
     // output.mp4
@@ -138,7 +139,6 @@ int main(int argc, const char *argv[]) {
 
     for (int j = 0; j < video.clips_size; j++) {
       if (run_ffmpeg(video.input_file, video.clips[j]) == -1) {
-        printf("Erro ao executar ffmpeg\n");
         break;
       }
     }
