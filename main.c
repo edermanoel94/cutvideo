@@ -1,6 +1,7 @@
 #include <json-c/json.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define CLIP_NAME_SIZE 256
@@ -21,23 +22,38 @@ struct video_t {
 
 int run_ffmpeg(const char *input, struct clip_t clip) {
 
-  // checking if input path exists
-  struct stat stat_buf = {0};
+  int pid, status;
 
-  if (lstat(input, &stat_buf) == -1) {
-    perror("lstat");
-    return -1;
-  }
+  pid = fork();
 
-  char output[CLIP_NAME_SIZE];
-  sprintf(output, "%s.mp4", clip.name);
+  if (pid == 0) {
+    char output[CLIP_NAME_SIZE];
+    sprintf(output, "%s.mp4", clip.name);
 
-  // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
-  // output.mp4
-  if (execl("/usr/bin/ffmpeg", "ffmpeg", "-i", input, "-ss", clip.start_time,
-            "-to", clip.end_time, "-c", "copy", output, NULL) == -1) {
-    perror("execl");
-    return -1;
+    char *args[] = {"/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-y",
+      "-i",
+      input,
+      "-ss",
+      clip.start_time,
+      "-to",
+      clip.end_time,
+      "-c",
+      "copy",
+      output,
+      0};
+
+    // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
+    // output.mp4
+    if (execv("/usr/bin/ffmpeg", args) == -1) {
+      perror("execl");
+      return -1;
+    }
+  } else {
+    wait(&status);
   }
 
   return 0;
@@ -122,6 +138,7 @@ int main(int argc, const char *argv[]) {
 
     for (int j = 0; j < video.clips_size; j++) {
       if (run_ffmpeg(video.input_file, video.clips[j]) == -1) {
+        printf("Erro ao executar ffmpeg\n");
         break;
       }
     }
