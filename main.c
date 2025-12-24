@@ -1,6 +1,5 @@
 #include <json-c/json.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -126,11 +125,10 @@ int main(int argc, const char *argv[]) {
 
     videos[i] = video_t;
 
-    // keeping this is worthy ?
+    // ????
     clips = NULL;
   }
 
-  // iterate over the struct of video_t and iterate over clips and run ffmpeg
   int videos_length = sizeof(videos) / sizeof(struct video_t);
 
   for (int i = 0; i < videos_length; i++) {
@@ -143,11 +141,11 @@ int main(int argc, const char *argv[]) {
       }
     }
 
-    // this is correct ? using valgrind, not leaking memory
+    // Using valgrind, not leaking memory, so its correct!
     free(video.clips);
   }
 
-  // free json object
+  // free root json object
   json_object_put(root);
 
   return 0;
