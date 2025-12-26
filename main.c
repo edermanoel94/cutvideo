@@ -1,7 +1,20 @@
-#include <json-c/json.h>
+#include <stdarg.h>
 #include <stdio.h>
+
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <json-c/json.h>
+
+#if __APPLE__
+#define FFMPEG_BIN "/opt/homebrew/bin/ffmpeg"
+#elif __linux__ || __unix__ || defined(_POSIX_VERSION)
+#define FFMPEG_BIN "/usr/bin/ffmpeg"
+#else
+#error "Unknown compiler"
+#endif
+
+#pragma message FFMPEG_BIN
 
 #define CLIP_NAME_SIZE 256
 
@@ -19,45 +32,9 @@ struct video_t {
   int clips_size;
 };
 
-int run_ffmpeg(const char *input, struct clip_t clip) {
+static void logging(const char *fmt, ...);
 
-  int pid, status;
-
-  pid = fork();
-
-  if (pid == 0) {
-    char output[CLIP_NAME_SIZE];
-    // TODO: choosing a target dir
-    sprintf(output, "%s.mp4", clip.name);
-
-    char *args[] = {"/usr/bin/ffmpeg",
-                    "-hide_banner",
-                    "-loglevel",
-                    "error",
-                    "-y",
-                    "-i",
-                    input,
-                    "-ss",
-                    clip.start_time,
-                    "-to",
-                    clip.end_time,
-                    "-c",
-                    "copy",
-                    output,
-                    0};
-
-    // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
-    // output.mp4
-    if (execv("/usr/bin/ffmpeg", args) == -1) {
-      perror("execl");
-      return -1;
-    }
-  } else {
-    wait(&status);
-  }
-
-  return 0;
-}
+int run_ffmpeg(const char *input, struct clip_t clip);
 
 int main(int argc, const char *argv[]) {
 
@@ -71,7 +48,7 @@ int main(int argc, const char *argv[]) {
 
   root = json_object_from_file(filename);
   if (!root) {
-    printf("Error to open json file.");
+    logging("Error to open json file");
     return 1;
   }
 
@@ -149,4 +126,53 @@ int main(int argc, const char *argv[]) {
   json_object_put(root);
 
   return 0;
+}
+
+int run_ffmpeg(const char *input, struct clip_t clip) {
+
+  int pid, status;
+
+  pid = fork();
+
+  if (pid == 0) {
+    char output[CLIP_NAME_SIZE];
+    // TODO: choosing a target dir
+    sprintf(output, "%s.mp4", clip.name);
+
+    char *args[] = {FFMPEG_BIN,
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-y",
+                    "-i",
+                    input,
+                    "-ss",
+                    clip.start_time,
+                    "-to",
+                    clip.end_time,
+                    "-c",
+                    "copy",
+                    output,
+                    0};
+
+    // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
+    // output.mp4
+    if (execv("/usr/bin/ffmpeg", args) == -1) {
+      perror("execl");
+      return -1;
+    }
+  } else {
+    wait(&status);
+  }
+
+  return 0;
+}
+
+static void logging(const char *fmt, ...) {
+  va_list args;
+  fprintf(stderr, "LOG: ");
+  va_start(args, fmt);
+  vfprintf(stderr, fmt, args);
+  va_end(args);
+  fprintf(stderr, "\n");
 }
