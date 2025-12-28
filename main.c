@@ -63,8 +63,9 @@ int main(int argc, const char *argv[]) {
 
     struct json_object *title_obj, *input_file_obj, *clips_obj;
 
+    // if name is not matched with json name, should given error
     json_object_object_get_ex(item, "title", &title_obj);
-    json_object_object_get_ex(item, "inputFile", &input_file_obj);
+    json_object_object_get_ex(item, "inputVideoPath", &input_file_obj);
     json_object_object_get_ex(item, "clips", &clips_obj);
 
     struct video_t video_t = {
@@ -139,25 +140,12 @@ int run_ffmpeg(const char *input, struct clip_t clip) {
     // TODO: choosing a target dir
     sprintf(output, "%s.mp4", clip.name);
 
-    char *args[] = {FFMPEG_BIN,
-                    "-hide_banner",
-                    "-loglevel",
-                    "error",
-                    "-y",
-                    "-i",
-                    input,
-                    "-ss",
-                    clip.start_time,
-                    "-to",
-                    clip.end_time,
-                    "-c",
-                    "copy",
-                    output,
-                    0};
+    char *args[] = {
+        FFMPEG_BIN,    "-hide_banner", "-loglevel", "error",         "-y",
+        "-i",          input,          "-ss",       clip.start_time, "-to",
+        clip.end_time, "-c",           "copy",      output,          0};
 
-    // command-line: ffmpeg -i IMG_9032.MOV -ss 00:09:06 -to 00:09:18 -c copy
-    // output.mp4
-    if (execv("/usr/bin/ffmpeg", args) == -1) {
+    if (execv(FFMPEG_BIN, args) == -1) {
       perror("execl");
       return -1;
     }
