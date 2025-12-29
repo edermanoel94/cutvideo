@@ -4,6 +4,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+
 #include <json-c/json.h>
 
 #if __APPLE__
@@ -35,6 +38,8 @@ struct video_t {
 static void logging(const char *fmt, ...);
 
 int run_ffmpeg(const char *input, struct clip_t clip);
+int run_ffmpeg_v2(AVFormatContext *pFormatContext, const char *input,
+                  struct clip_t clip);
 
 int main(int argc, const char *argv[]) {
 
@@ -42,6 +47,8 @@ int main(int argc, const char *argv[]) {
     printf("Usage: %s <input_file>\n", argv[0]);
     exit(0);
   }
+
+  AVFormatContext *pFormatContext = avformat_alloc_context();
 
   const char *filename = argv[1];
   struct json_object *root;
@@ -114,7 +121,8 @@ int main(int argc, const char *argv[]) {
     struct video_t video = videos[i];
 
     for (int j = 0; j < video.clips_size; j++) {
-      if (run_ffmpeg(video.input_file, video.clips[j]) == -1) {
+      if (run_ffmpeg_v2(pFormatContext, video.input_file, video.clips[j]) ==
+          -1) {
         break;
       }
     }
@@ -125,6 +133,7 @@ int main(int argc, const char *argv[]) {
 
   // free root json object
   json_object_put(root);
+  avformat_close_input(&pFormatContext);
 
   return 0;
 }
@@ -154,6 +163,17 @@ int run_ffmpeg(const char *input, struct clip_t clip) {
   }
 
   return 0;
+}
+
+int run_ffmpeg_v2(AVFormatContext *pFormatContext, const char *input,
+                  struct clip_t clip) {
+
+  avformat_open_input(&pFormatContext, input, NULL, NULL);
+
+  printf("Format: %s, duration %ld us\n", pFormatContext->iformat->long_name,
+         pFormatContext->duration);
+
+  return -1;
 }
 
 static void logging(const char *fmt, ...) {
