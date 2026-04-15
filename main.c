@@ -1,7 +1,9 @@
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -10,16 +12,6 @@
 #include <libavutil/timestamp.h>
 
 #include <json-c/json.h>
-
-#if __APPLE__
-#define FFMPEG_BIN "/opt/homebrew/bin/ffmpeg"
-#elif __linux__ || __unix__ || defined(_POSIX_VERSION)
-#define FFMPEG_BIN "/usr/bin/ffmpeg"
-#else
-#error "Unknown compiler"
-#endif
-
-#pragma message FFMPEG_BIN
 
 #define CLIP_NAME_SIZE 256
 
@@ -42,18 +34,19 @@ static void log_packet(const AVFormatContext *fmt_ctx, const AVPacket *pkt,
                        const char *tag);
 static double parse_time(const char *time_str);
 
-int run_ffmpeg(const char *input, struct clip_t clip);
 int convert(const char *input, struct clip_t clip);
 
 int main(int argc, const char *argv[]) {
 
+  const char *filename = NULL;
+
   if (argc != 2) {
     printf("Usage: %s <input_file>\n", argv[0]);
-    exit(0);
+    exit(-1);
   }
-
-  const char *filename = argv[1];
   struct json_object *root;
+
+  filename = argv[1];
 
   root = json_object_from_file(filename);
   if (!root) {
@@ -112,7 +105,6 @@ int main(int argc, const char *argv[]) {
 
     videos[i] = video_t;
 
-    // ????
     clips = NULL;
   }
 
@@ -123,6 +115,7 @@ int main(int argc, const char *argv[]) {
     struct video_t video = videos[i];
 
     for (int j = 0; j < video.clips_size; j++) {
+
       if (convert(video.input_file, video.clips[j]) == -1) {
         break;
       }
@@ -134,44 +127,6 @@ int main(int argc, const char *argv[]) {
 
   // free root json object
   json_object_put(root);
-
-  return 0;
-}
-
-int run_ffmpeg(const char *input, struct clip_t clip) {
-
-  int pid, status;
-
-  pid = fork();
-
-  if (pid == 0) {
-    char output[CLIP_NAME_SIZE];
-    // TODO: choosing a target dir
-    sprintf(output, "%s.mp4", clip.name);
-
-    char *args[] = {FFMPEG_BIN,
-                    "-hide_banner",
-                    "-loglevel",
-                    "error",
-                    "-y",
-                    "-i",
-                    (char *)input,
-                    "-ss",
-                    (char *)clip.start_time,
-                    "-to",
-                    (char *)clip.end_time,
-                    "-c",
-                    "copy",
-                    output,
-                    NULL};
-
-    if (execv(FFMPEG_BIN, args) == -1) {
-      perror("execl");
-      return -1;
-    }
-  } else {
-    wait(&status);
-  }
 
   return 0;
 }
@@ -280,15 +235,18 @@ int convert(const char *input, struct clip_t clip) {
   double start_time = parse_time(clip.start_time);
   double end_time = parse_time(clip.end_time);
 
-  int64_t start_us = (int64_t)(start_time * AV_TIME_BASE);
+  logging("start_time: %lf, end_time: %lf", start_time, end_time);
+
   int64_t end_us = (int64_t)(end_time * AV_TIME_BASE);
-
-  logging("start_time: %lf, end_time %lf", start_us, end_us);
-
-  // convert custom time to timestamp
-  // Ex.: 00:10:00 -> 10sec
   int64_t start_ts = start_time * AV_TIME_BASE;
+
+  logging("start_ts: %ld, end_us: %ld", start_ts, end_us);
+
   av_seek_frame(ifmt_ctx, -1, start_ts, AVSEEK_FLAG_BACKWARD);
+
+  // actual_start_us is set from the first video keyframe found after the seek,
+  // so the clip always begins at a decodable I-frame boundary.
+  int64_t actual_start_us = -1;
 
   // copy packets
   while (1) {
@@ -319,11 +277,16 @@ int convert(const char *input, struct clip_t clip) {
       continue;
     }
 
-    double pkt_us = av_rescale_q(ts, in_stream->time_base, AV_TIME_BASE_Q);
+    int64_t pkt_us = av_rescale_q(ts, in_stream->time_base, AV_TIME_BASE_Q);
 
-    if (pkt_us < start_us) {
-      av_packet_unref(p_packet);
-      continue;
+    if (actual_start_us < 0) {
+      // wait for the first video keyframe to anchor the real start
+      if (in_stream->codecpar->codec_type != AVMEDIA_TYPE_VIDEO ||
+          !(p_packet->flags & AV_PKT_FLAG_KEY)) {
+        av_packet_unref(p_packet);
+        continue;
+      }
+      actual_start_us = pkt_us;
     }
 
     if (pkt_us > end_us) {
@@ -332,19 +295,19 @@ int convert(const char *input, struct clip_t clip) {
     }
 
     int64_t start_ts_stream =
-        av_rescale_q(start_us, AV_TIME_BASE_Q, in_stream->time_base);
+        av_rescale_q(actual_start_us, AV_TIME_BASE_Q, in_stream->time_base);
 
     if (p_packet->pts != AV_NOPTS_VALUE)
       p_packet->pts -= start_ts_stream;
     if (p_packet->dts != AV_NOPTS_VALUE)
       p_packet->dts -= start_ts_stream;
 
-    log_packet(ifmt_ctx, p_packet, "in");
+    // log_packet(ifmt_ctx, p_packet, "in");
 
     av_packet_rescale_ts(p_packet, in_stream->time_base, out_stream->time_base);
     p_packet->pos = -1;
 
-    log_packet(ofmt_ctx, p_packet, "out");
+    // log_packet(ofmt_ctx, p_packet, "out");
 
     ret = av_interleaved_write_frame(ofmt_ctx, p_packet);
     if (!out_stream) {

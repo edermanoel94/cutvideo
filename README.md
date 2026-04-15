@@ -116,3 +116,9 @@ Run:
 ```
 
 This produces `opening.mp4` and `demo.mp4` in the current directory.
+
+## TODO
+
+- [] Replace whitespace with undercase in the clip name.
+- [] Added a video target directory.
+
