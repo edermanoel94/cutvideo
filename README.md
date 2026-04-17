@@ -34,10 +34,10 @@ brew install ffmpeg json-c
 
 ## Build
 
-There is no Makefile. Compile with gcc:
-
 ```sh
-gcc main.c -o cutvideo -lavformat -lavcodec -lavutil -ljson-c
+make release   # optimised build (-O2)
+make debug     # debug build (-g -O0)
+make clean     # remove binary
 ```
 
 > `compile_flags.txt` exists only for clangd LSP support — it is not used for building.

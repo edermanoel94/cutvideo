@@ -157,7 +157,7 @@ int convert(const char *input, struct clip_t clip) {
     return -1;
   }
 
-  av_dump_format(ifmt_ctx, 0, input, 0);
+  // av_dump_format(ifmt_ctx, 0, input, 0);
 
   char output_file[CLIP_NAME_SIZE];
   sprintf(output_file, "%s.mp4", clip.name);
@@ -213,7 +213,7 @@ int convert(const char *input, struct clip_t clip) {
     out_stream->codecpar->codec_tag = 0;
   }
 
-  av_dump_format(ofmt_ctx, 0, output_file, 1);
+  // av_dump_format(ofmt_ctx, 0, output_file, 1);
 
   if (!(ofmt_ctx->flags & AVFMT_NOFILE)) {
 
@@ -235,12 +235,8 @@ int convert(const char *input, struct clip_t clip) {
   double start_time = parse_time(clip.start_time);
   double end_time = parse_time(clip.end_time);
 
-  logging("start_time: %lf, end_time: %lf", start_time, end_time);
-
   int64_t end_us = (int64_t)(end_time * AV_TIME_BASE);
   int64_t start_ts = start_time * AV_TIME_BASE;
-
-  logging("start_ts: %ld, end_us: %ld", start_ts, end_us);
 
   av_seek_frame(ifmt_ctx, -1, start_ts, AVSEEK_FLAG_BACKWARD);
 
